@@ -23,4 +23,4 @@ Usuario.hasOne(Endereco);
 Endereco.belongsTo(Usuario);
 
 Usuario.belongsToMany(Filme, { through: 'usuario_filme' }); // para associação de N:N
-Filme.belongsToMany(Usuario, { through: 'usuario_filme' });  // para associação de N:N
+Filme.belongsToMany(Usuario, { through: 'usuario_filme' });
