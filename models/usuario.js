@@ -22,5 +22,5 @@ export const Usuario = connection.define('usuario', {
 Usuario.hasOne(Endereco);
 Endereco.belongsTo(Usuario);
 
-Usuario.belongsToMany(Filme, { through: 'usuario_filme' });
-Filme.belongsToMany(Usuario, { through: 'usuario_filme' });
+Usuario.belongsToMany(Filme, { through: 'usuario_filme' }); // para associação de N:N
+Filme.belongsToMany(Usuario, { through: 'usuario_filme' });  // para associação de N:N
