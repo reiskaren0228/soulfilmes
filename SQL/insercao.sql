@@ -1,3 +1,4 @@
+-- SQLBook: Code
 INSERT INTO usuarios (nome, email, telefone, createdAt, updatedAt) VALUES
 ('João Silva', 'joao.silva@example.com', '11987654321', NOW(), NOW()),
 ('Maria Oliveira', 'maria.oliveira@example.com', '21987654321', NOW(), NOW()),
