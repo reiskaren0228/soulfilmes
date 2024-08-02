@@ -2,6 +2,7 @@ import { connection } from '../config/database.js';
 import { DataTypes } from 'sequelize';
 import { Endereco } from './endereco.js';
 import { Filme } from './filme.js';
+import { usuarioFilme } from './usuarioFilme.js';
 
 export const Usuario = connection.define('usuario', {
   nome: {
@@ -19,8 +20,17 @@ export const Usuario = connection.define('usuario', {
   },
 });
 
-Usuario.hasOne(Endereco);
-Endereco.belongsTo(Usuario);
+Usuario.hasOne(Endereco, {
+  foreignKey: {
+    name: 'usuarioId',
+    allowNull: false,
+  },
+  onDelete: 'CASCADE',
+});
+Endereco.belongsTo(Usuario, {
+  foreignKey: 'usuarioId',
+  onDelete: 'CASCADE',
+});
 
-Usuario.belongsToMany(Filme, { through: 'usuario_filme' }); // para associação de N:N
-Filme.belongsToMany(Usuario, { through: 'usuario_filme' });
+Usuario.belongsToMany(Filme, { through: 'usuario_filme', as: 'Filmes' }); // para associação de N:N
+Filme.belongsToMany(Usuario, { through: 'usuario_filme', as: 'Usuarios' });

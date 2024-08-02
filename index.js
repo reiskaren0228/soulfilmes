@@ -1,6 +1,6 @@
 import { connection, authenticate } from './config/database.js';
-import { usuarioRouter } from './routes/usuario.js';
-import { filmeRouter } from './routes/filme.js';
+import { usuarioRouter } from './routes/usuarios.js';
+import { filmeRouter } from './routes/filmes.js';
 import express from 'express';
 authenticate(connection).then(() => {
   // apos conectar no banco de dados, sincroniza os modelos. gera as tabelas se necessario

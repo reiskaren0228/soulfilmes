@@ -5,13 +5,13 @@ import { Router } from 'express';
 export const filmeRouter = Router();
 
 // rota para listar todos os filmes
-filmeRouter.get('/filme', async (req, res) => {
+filmeRouter.get('/filmes', async (req, res) => {
   // equivalente a SELECT * FROM filmes;
   const listaFilme = await Filme.findAll();
   res.json(listaFilme);
 });
 
-filmeRouter.get('/filme/:id', async (req, res) => {
+filmeRouter.get('/filmes/:id', async (req, res) => {
   // SELECT * FROM filme WHERE id = 1;
   const filmeEncontrado = await Filme.findOne({
     where: { id: req.params.id },
@@ -19,8 +19,9 @@ filmeRouter.get('/filme/:id', async (req, res) => {
     include: [
       {
         model: Usuario,
+        as: 'Usuarios',
         attributes: ['id', 'nome'],
-      }, 
+      },
     ],
   });
 
@@ -33,7 +34,7 @@ filmeRouter.get('/filme/:id', async (req, res) => {
 
 
 // Rota para adicionar um novo filme
-filmeRouter.post('/filme', async (req, res) => {
+filmeRouter.post('/filmes', async (req, res) => {
   try {
     const { titulo, diretor, genero, anoLancamento } = req.body;
 
@@ -55,7 +56,7 @@ filmeRouter.post('/filme', async (req, res) => {
 
 // Rota para atualizar um filme
 
-filmeRouter.put('/filme/:id', async (req, res) => {
+filmeRouter.put('/filmes/:id', async (req, res) => {
   const idfilme = req.params.id;
 
   try {
@@ -78,7 +79,7 @@ filmeRouter.put('/filme/:id', async (req, res) => {
 // apagar um filme
 // DELETE FROM filme WHERE id = 1;
 
-filmeRouter.delete('/filme/:id', async (req, res) => {
+filmeRouter.delete('/filmes/:id', async (req, res) => {
   const idfilme = req.params.id;
 
   try {
