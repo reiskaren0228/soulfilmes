@@ -1,93 +1,95 @@
 import { Usuario } from '../models/usuario.js';
 import { Endereco } from '../models/endereco.js';
 import { Filme } from '../models/filme.js';
-import { usuarioFilme } from '../models/usuarioFilme.js';
 import { Router } from 'express';
 
 export const usuarioRouter = Router();
 
-// rota para listar todos os usuarios
+// Rota para listar todos os usuários
 usuarioRouter.get('/usuarios', async (req, res) => {
-  // equivalente a SELECT * FROM usuario;
-  const listaUsuario = await Usuario.findAll();
-  res.json(listaUsuario);
-});
-
-// listando 1 Usuario
-// Listagem de um Usuario específico (ID = ?)
-// :id => parâmetro de rota
-usuarioRouter.get('/usuarios/:id', async (req, res) => {
-  // SELECT * FROM usuario WHERE id = 1;
-  const UsuarioEncontrado = await Usuario.findOne({
-    where: { id: req.params.id },
-    include: [Endereco],
-  });
-
-  if (UsuarioEncontrado) {
-    res.json(UsuarioEncontrado);
-  } else {
-    res.status(404).json({ message: "Usuario não encontrado!" });
+  try {
+    const listaUsuario = await Usuario.findAll({
+      include: [Endereco]
+    });
+    res.json(listaUsuario);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erro ao listar usuários!' });
   }
 });
 
-// rota para inserir um Usuario
+// Rota para listar um usuário específico
+usuarioRouter.get('/usuarios/:id', async (req, res) => {
+  try {
+    const UsuarioEncontrado = await Usuario.findOne({
+      where: { id: req.params.id },
+      include: [Endereco]
+    });
+
+    if (UsuarioEncontrado) {
+      res.json(UsuarioEncontrado);
+    } else {
+      res.status(404).json({ message: "Usuário não encontrado!" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erro ao buscar usuário!' });
+  }
+});
+
+// Rota para inserir um usuário
 usuarioRouter.post('/usuarios', async (req, res) => {
-  // extraindo os dados do body que serao usados na inserção
   const { nome, email, telefone, endereco } = req.body;
 
   try {
-    // tentativa de inserir o Usuario
-    await Usuario.create({
+    const novoUsuario = await Usuario.create({
       nome,
       email,
       telefone,
-      endereco,
-    },
-      { include: [Endereco] } // indicando que o endereço será salvo e associado ao Usuario
-    );
-    res.status(201).json({ message: 'Usuario inserido com sucesso!' });
+      Endereco: endereco
+    }, {
+      include: [Endereco]
+    });
 
+    res.status(201).json({ message: 'Usuário inserido com sucesso!', usuario: novoUsuario });
   } catch (err) {
     console.error(err);
-    res.status(400).json({ message: 'Erro ao inserir o Usuario!' }); // erro do lado do Usuario
-
-    // 500 - erro do lado do servidor
-    console.error(err);
-    res.status(500).json({ message: 'Erro no servidor ao inserir o Usuario!' }); // erro do lado do servidor
-
+    res.status(400).json({ message: 'Erro ao inserir o usuário!' });
   }
-
 });
 
-// rota para atualizar um Usuario
+// Rota para atualizar um usuário
 usuarioRouter.put('/usuarios/:id', async (req, res) => {
   const idUsuario = req.params.id;
   const { nome, email, telefone, endereco } = req.body;
 
   try {
-    const UsuarioAtualizado = await Usuario.findOne({ where: { id: idUsuario } });
+    const UsuarioAtualizado = await Usuario.findOne({ where: { id: idUsuario }, include: [Endereco] });
 
     if (UsuarioAtualizado) {
-      // atualiza a linha do endereço que for o id do Usuario
-      // for igual ao do Usuario sendo atualizado
-      await Endereco.update(endereco, { where: { UsuarioId: idUsuario } });
       await UsuarioAtualizado.update({
         nome,
         email,
-        telefone,
+        telefone
       });
 
-      res.json({ message: 'Usuario atualizado com sucesso!' });
+      if (UsuarioAtualizado.Endereco) {
+        await UsuarioAtualizado.Endereco.update(endereco);
+      } else {
+        await Endereco.create({ ...endereco, usuarioId: idUsuario });
+      }
+
+      res.json({ message: 'Usuário atualizado com sucesso!' });
     } else {
-      res.status(404).json({ message: 'Usuario não encontrado!' });
+      res.status(404).json({ message: 'Usuário não encontrado!' });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erro ao atualizar o Usuario!', error: err });
+    res.status(500).json({ message: 'Erro ao atualizar o usuário!' });
   }
 });
 
-// rota para deletar um Usuario
+// Rota para deletar um usuário
 usuarioRouter.delete('/usuarios/:id', async (req, res) => {
   const idUsuario = req.params.id;
 
@@ -96,20 +98,17 @@ usuarioRouter.delete('/usuarios/:id', async (req, res) => {
 
     if (UsuarioDeletado) {
       await UsuarioDeletado.destroy();
-      res.json({ message: 'eu sou inevitavel! *estalo*' });
+      res.json({ message: 'Usuário deletado com sucesso!' });
     } else {
-      res.status(404).json({ message: 'Usuario não encontrado!' });
+      res.status(404).json({ message: 'Usuário não encontrado!' });
     }
-
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erro ao deletar o Usuario!', error: err });
+    res.status(500).json({ message: 'Erro ao deletar o usuário!' });
   }
 });
 
-///-------------
-
-// rota para adicionar um filme assistido pelo usuario
+// Rota para adicionar um filme assistido pelo usuário
 usuarioRouter.post('/usuarios/:usuarioId/filmes/:filmeId', async (req, res) => {
   const { usuarioId, filmeId } = req.params;
 
@@ -119,17 +118,17 @@ usuarioRouter.post('/usuarios/:usuarioId/filmes/:filmeId', async (req, res) => {
 
     if (usuario && filme) {
       await usuario.addFilme(filme);
-      res.status(200).json({ message: 'Filme adicionado ao usuario com sucesso!' });
+      res.status(200).json({ message: 'Filme adicionado ao usuário com sucesso!' });
     } else {
-      res.status(404).json({ message: 'Usuario ou Filme não encontrado!' });
+      res.status(404).json({ message: 'Usuário ou Filme não encontrado!' });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erro ao adicionar o Filme ao Usuario!', error: err });
+    res.status(500).json({ message: 'Erro ao adicionar o Filme ao usuário!', error: err });
   }
 });
 
-////----
+// Rota para listar filmes assistidos por um usuário
 usuarioRouter.get('/usuarios/:id/filmes', async (req, res) => {
   const usuarioId = req.params.id;
 
@@ -137,8 +136,8 @@ usuarioRouter.get('/usuarios/:id/filmes', async (req, res) => {
     const usuario = await Usuario.findByPk(usuarioId, {
       include: [{
         model: Filme,
-        as: 'Filmes', // Use o alias correto
-        through: { attributes: [] } // Isso evita que os atributos da tabela de junção sejam retornados
+        as: 'Filmes',
+        through: { attributes: [] }
       }]
     });
 
