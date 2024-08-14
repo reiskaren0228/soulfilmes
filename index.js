@@ -2,6 +2,7 @@ import { connection, authenticate } from './config/database.js';
 import { usuarioRouter } from './routes/usuarios.js';
 import { filmeRouter } from './routes/filmes.js';
 import express from 'express';
+import cors from 'cors';
 authenticate(connection).then(() => {
   // apos conectar no banco de dados, sincroniza os modelos. gera as tabelas se necessario
   // force: true força a criação da tabela, apagando a tabela se ela existir
@@ -13,6 +14,7 @@ authenticate(connection).then(() => {
 const app = express(); // cria uma instância do express
 
 app.use(express.json()); // middleware para o express entender JSON
+app.use(cors()); // middleware para permitir requisições de outros domínios
 
 // rota para a raiz da aplicação
 app.get('/', (req, res) => {
